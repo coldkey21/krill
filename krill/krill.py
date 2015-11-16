@@ -66,13 +66,18 @@ class StreamParser:
         feed_data = feedparser.parse(xml)
         # Default to feed URL if no title element is present
         feed_title = feed_data.feed.get("title", url)
+        feed_link = feed_data.feed.get("link")
+        if feed_link is None:
+            feed_link = ''
+        if feed_link.endswith("/"):
+            feed_link = feed_link[:-1]
 
         for entry in feed_data.entries:
             time = datetime.fromtimestamp(calendar.timegm(entry.published_parsed)) \
                    if "published_parsed" in entry else None
             title = entry.get("title")
             text = self._html_to_text(entry.description) if "description" in entry else None
-            link = entry.get("link")
+            link = feed_link + entry.get("link")
 
             # Some feeds put the text in the title element
             if text is None and title is not None:
