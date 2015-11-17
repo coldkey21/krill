@@ -66,6 +66,7 @@ class StreamParser:
         feed_data = feedparser.parse(xml)
         # Default to feed URL if no title element is present
         feed_title = feed_data.feed.get("title", url)
+        # Store the feed's URL in case it needs appended to the entry links
         feed_link = feed_data.feed.get("link")
         if feed_link is None:
             feed_link = ''
@@ -77,7 +78,13 @@ class StreamParser:
                    if "published_parsed" in entry else None
             title = entry.get("title")
             text = self._html_to_text(entry.description) if "description" in entry else None
-            link = feed_link + entry.get("link")
+            link = entry.get("link")
+            
+            # If the entry link does not have the full URL append the feed's link
+            if not re.match("^(http|https)://", link):
+                if not link.startswith("/"):
+                    link = "/" + link
+                link = feed_link + link
 
             # Some feeds put the text in the title element
             if text is None and title is not None:
